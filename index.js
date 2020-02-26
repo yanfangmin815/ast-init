@@ -4,10 +4,10 @@ const generate = require('@babel/generator').default;
 const traverse = require('@babel/traverse').default
 
 const code = `
-       const obj = {
-           a: 'a',
-           b: 'b'
-       }`;
+        function AA() {
+            console.log('this is declare')
+        }
+       `;
 const ast = parse(code);
 
 const generatorNumber = function() {
@@ -166,11 +166,12 @@ const content = generatorNumber()
 const variableDeclaration = generatorVariableDeclaration()
 // 为函数包裹try...catch...finally
 const tryStatement = generateTryStatement()
-
+const functionDeclaration = t.functionDeclaration(
+    t.identifier('AA'), [], t.blockStatement([tryStatement]))
 // 将内容放入body中
 ast.program.body.push(content);
 ast.program.body.push(variableDeclaration);
-ast.program.body.push(tryStatement);
+ast.program.body.push(functionDeclaration);
 
 // 改 - 向数组中添加属性
 const property = t.objectProperty(t.identifier('c'), t.stringLiteral('c'));
@@ -188,20 +189,31 @@ traverse(ast, {
         }
     },
     ObjectExpression(path) {
-        // console.log(path, 'ObjectExpression');
+        console.log(path, 'ObjectExpression');
         if (path.parent.id.name == 'obj') {
             path.pushContainer('properties', property);
         }
         // path.pushContainer('properties', property);
     },
     FunctionDeclaration(path) {
-        // console.log(path, 'FunctionDeclaration');
-        const number = t.numericLiteral(1);
-        path.pushContainer('params', number);
-        // path.pushContainer('body', number);
+        console.log(path, 'FunctionDeclaration');
+        // const number = t.numericLiteral(1);
+        // path.pushContainer('params', number);
     },
     VariableDeclaration(path) {
         // console.log(path, 'VariableDeclaration');
+    },
+    ExpressionStatement(path) {
+        const tryStatement = generateTryStatement()
+        // const blockStatement2 = generateBlockStatement2()
+        /**
+         * block: BlockStatement (required)
+         * handler: CatchClause (default: null)
+         * finalizer: BlockStatement (default: null)  , blockStatement2
+         */
+        // const rtn = t.returnStatement(t.binaryExpression('+', t.stringLiteral('hello'), t.identifier('v')))
+        // path.replaceWith(rtn)
+        path.replaceWith(tryStatement)
     }
 });
 
